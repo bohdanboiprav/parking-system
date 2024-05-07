@@ -1,0 +1,14 @@
+http://127.0.0.1:8000/docs.
+
+uvicorn main:app --host localhost --port 8000 --reload
+poetry add python-jose[cryptography]
+
+docker-compose up – запуск служб, визначених у файлі docker-compose.yml. Ця команда створить і запустить контейнери для кожного сервісу, а також створить мережу для взаємодії контейнерів.
+
+docker-compose build – перебудувати образи, визначені у файлі docker-compose.yml. Це може бути корисно, якщо ви внесли зміни до своїх сервісів і хочете переконатися, що образи актуальні.
+
+poetry export --without-hashes --format=requirements.txt > requirements.txt
+
+alembic init migrations
+alembic revision --autogenerate -m 'Init'
+alembic upgrade head
