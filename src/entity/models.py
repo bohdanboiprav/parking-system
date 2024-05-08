@@ -21,7 +21,7 @@ class User(Base):
     lastname: Mapped[str] = mapped_column(String(50),nullable=True)
     email: Mapped[str] = mapped_column(String(150), unique=True)
     mobilenamber: Mapped[str] = mapped_column(String(15),nullable=True)
-    databirthday: Mapped[date] = mapped_column('databirthday', DateTime, nullable=True)
+    databirthday: Mapped[date] = mapped_column('databirthday', Date, nullable=True)
     password: Mapped[str] = mapped_column(String(500))
     balance: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=True)
     notification: Mapped[bool] = mapped_column(Boolean, default=False,nullable=True)
@@ -68,7 +68,7 @@ class RateTime(Base):
 class Avto(Base):
     __tablename__ = 'avto'
     id: Mapped[int] = mapped_column(primary_key=True)
-    number: Mapped[str] = mapped_column(String(50), nullable=True)
+    number: Mapped[str] = mapped_column(String(50),unique=True, nullable=True)
     color: Mapped[str] = mapped_column(String(50), nullable=True)
     model: Mapped[str] = mapped_column(String(50), nullable=True)
     is_banned: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
@@ -85,4 +85,5 @@ class Log(Base):
                                              default=func.now(), onupdate=func.now())
     billcash: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=True)
     billbalance: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=True)   
-    discount: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=True) 
+    discount: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=True)
+    in_parking: Mapped[bool] = mapped_column(Boolean, default=False) 

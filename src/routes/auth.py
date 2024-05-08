@@ -187,7 +187,7 @@ async def request_email(
         return {"message": "Your email is already confirmed"}
     if user:
         background_tasks.add_task(
-            send_email, user.email, user.username, str(request.base_url)
+            send_email, user.email, str(request.base_url)
         )
     return {"message": "Check your email for confirmation."}
 
@@ -217,7 +217,6 @@ async def reset_password(
     bt.add_task(
         send_email,
         user.email,
-        user.username,
         str(request.base_url),
         type="reset_password",
     )

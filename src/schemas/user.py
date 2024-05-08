@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime 
+from datetime import datetime , date
 from pydantic import BaseModel, EmailStr, ConfigDict, Field 
 from decimal import Decimal
 from typing import List, Optional ,Dict
@@ -8,6 +8,15 @@ class UserSchema(BaseModel):
     #username: str = Field(min_length=2, max_length=50)
     email: EmailStr
     password: str = Field(min_length=6, max_length=8)
+
+class UserUpdateSchema(BaseModel):
+    firstname: str | None 
+    lastname: str | None 
+    mobilenamber: str | None
+    databirthday: datetime | None
+    notification: bool 
+
+  
 
 class AvtoResponse(BaseModel):
     number: str | None 
@@ -19,7 +28,7 @@ class UserResponse(BaseModel):
     lastname: str | None 
     email: EmailStr
     mobilenamber: str | None
-    databirthday: datetime | None
+    databirthday: date | None
     balance: Decimal | None
     notification: bool 
     avatar: str

@@ -24,7 +24,7 @@ conf = ConnectionConfig(
 
 
 async def send_email(
-    email: EmailStr, username: str, host: str, type: str | None = None
+    email: EmailStr, host: str, type: str | None = None
 ):
     """
     The send_email function sends an email to the user with a link to verify their account.
@@ -50,7 +50,7 @@ async def send_email(
             recipients=[email],
             template_body={
                 "host": host,
-                "username": username,
+                #"username": username,
                 "token": token_verification,
             },
             subtype=MessageType.html,
