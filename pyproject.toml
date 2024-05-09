@@ -10,7 +10,6 @@ python = "^3.11"
 fastapi = "^0.108.0"
 uvicorn = {extras = ["standard"], version = "^0.29.0"}
 sqlalchemy = "^2.0.29"
-psycopg2 = "^2.9.9"
 alembic = "^1.13.1"
 redis = "^5.0.4"
 fastapi-limiter = "^0.1.6"
