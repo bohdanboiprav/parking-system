@@ -1,9 +1,9 @@
-from datetime import datetime ,date
+from datetime import datetime, date
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.entity.models import User
-from src.schemas.user import UserSchema,UserUpdateSchema
+from src.schemas.user import UserSchema, UserUpdateSchema
 
 
 async def get_profile(user: User, db: AsyncSession) -> dict:
@@ -41,14 +41,14 @@ async def get_profile(user: User, db: AsyncSession) -> dict:
 
 
 async def update_user_profile(
-  #  notification,
-    db: AsyncSession,
-    user: User,
-    firstname: str ,
-    lastname: str | None = None ,
-    mobilenamber: str | None = None ,
-    databirthday: date | None = None ,   
-    ) -> User | None:
+        #  notification,
+        db: AsyncSession,
+        user: User,
+        firstname: str,
+        lastname: str | None = None,
+        mobilenamber: str | None = None,
+        databirthday: date | None = None,
+) -> User | None:
     """
     The update_user_profile function updates a user's profile information.
         Args:
@@ -68,9 +68,9 @@ async def update_user_profile(
         user.lastname = lastname
         user.mobilenamber = mobilenamber
         user.databirthday = databirthday
-       # user.notification = notification,
+        # user.notification = notification,
         user.updated_at = datetime.now()
-        
+
         await db.commit()
         await db.refresh(user)
     return user
