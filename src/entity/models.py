@@ -49,6 +49,7 @@ class Rate(Base):
     ratename: Mapped[str] = mapped_column(String(50), nullable=True, unique=True)
     price: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=False)
     pricetime: Mapped[int] = mapped_column(Integer, nullable=False)
+    ratestime: Mapped[List["RateTime"]] = relationship("RateTime", back_populates="rate", lazy="joined",cascade='save-update, merge, delete')
 
 class RateTime(Base):
     __tablename__ = 'ratestime'
@@ -63,7 +64,7 @@ class RateTime(Base):
     starttime: Mapped[date] = mapped_column(Time, nullable=True)
     stoptime: Mapped[date] = mapped_column(Time, nullable=True)
     rate_id: Mapped[int] = mapped_column(ForeignKey('rates.id'))
-    rate: Mapped["Rate"] = relationship("Rate", backref="ratestime", lazy="joined")
+    rate: Mapped["Rate"] = relationship("Rate", back_populates="ratestime", lazy="joined")
     
 class Avto(Base):
     __tablename__ = 'avto'
@@ -82,7 +83,7 @@ class Log(Base):
     start: Mapped[date] = mapped_column('start', DateTime(timezone=True),
                                              default=func.now(), onupdate=func.now(), nullable=True)
     stop: Mapped[date] = mapped_column('stop', DateTime(timezone=True),
-                                             default=func.now(), onupdate=func.now())
+                                             default=func.now(), onupdate=func.now(),nullable=True)
     billcash: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=True)
     billbalance: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=True)   
     discount: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=True)
