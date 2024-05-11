@@ -11,7 +11,9 @@ from fastapi import (
     HTTPException,
     UploadFile,
     File,
-    status, Path
+    status, 
+    Path,
+    Query
 )
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,8 +22,8 @@ from src.conf import messages
 from src.conf.cloudinary import configure_cloudinary
 from src.database.db import get_db
 from src.entity.models import User , Avto
-from src.repository.users import update_avto, get_user_by_username, get_user_by_email ,get_user_info, add_avto
-from src.schemas.user import AvtoResponse, UserResponse, UserSchema, UserProfileResponse
+from src.repository.users import get_log_info, get_rates_info, get_user_info
+from src.schemas.user import LogResponse,RateResponse, AvtoResponse, UserResponse
 from src.services.auth import auth_service
 from src.repository import users as repository_users
 from src.repository import profile as repository_profile
@@ -38,7 +40,7 @@ configure_cloudinary()
 async def get_current_user(db: AsyncSession = Depends(get_db), user: User = Depends(auth_service.get_current_user)):
     aboutme = await get_user_info(user, db)
     if aboutme is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.USER_NOT_FOUND)
 
     """
     The get_current_user function is a dependency that will be injected into the
@@ -48,9 +50,10 @@ async def get_current_user(db: AsyncSession = Depends(get_db), user: User = Depe
     :param user: User: Specify the type of object that is returned by the auth_service
     :return: The current user, which is stored in the database
     """
+
     return aboutme
 
-@router.put("/{email}/profile/update", response_model=UserResponse,
+@router.put("/profile/update", response_model=UserResponse,
             dependencies=[Depends(RateLimiter(times=1, seconds=2))],
             status_code=status.HTTP_200_OK)
 async def update_user_profile(
@@ -75,7 +78,7 @@ async def update_user_profile(
     :param current_user: User: Get the current user
     :return: A user object
     """
-   # body.password = auth_service.get_password_hash(body.password)
+
     user = await repository_profile.update_user_profile(
        # notification,
         db,
@@ -87,7 +90,7 @@ async def update_user_profile(
           )
 
     if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="NOT FOUND")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.USER_NOT_FOUND)
     return user
 
 
@@ -101,6 +104,7 @@ async def get_current_user(
         file: UploadFile = File(),
         user: User = Depends(auth_service.get_current_user),
         db: AsyncSession = Depends(get_db)):
+    
     """
     The get_current_user function is a dependency that will be injected into the
         get_current_user endpoint. It takes in an UploadFile object, which is a file
@@ -111,6 +115,7 @@ async def get_current_user(
     :param db: AsyncSession: Get the database connection
     :return: The current user
     """
+
     public_id = f"Photoshare_app/Avatars/{user.id}"
     res = cloudinary.uploader.upload(file.file, public_id=public_id, owerite=True)
     res_url = cloudinary.CloudinaryImage(res["public_id"]).build_url(
@@ -120,8 +125,13 @@ async def get_current_user(
     return user
 
 @router.post("/add_avto", response_model=AvtoResponse)
-async def create_post(body: AvtoResponse,user: User = Depends(auth_service.get_current_user),
-                      db: AsyncSession = Depends(get_db)):
+async def create_post(
+        number: str,
+        colour: str | None = None,
+        model: str | None = None,
+        user: User = Depends(auth_service.get_current_user),
+        db: AsyncSession = Depends(get_db)):
+    
     """
     The create_post function creates a new post in the database.
         It takes in a PostModel object, an UploadFile object, and the current_user as arguments.
@@ -134,21 +144,20 @@ async def create_post(body: AvtoResponse,user: User = Depends(auth_service.get_c
     :param db: AsyncSession: Pass the database session to the repository layer
     :return: The created post with the new id
     """
-    avto = await repository_users.add_avto(body, user, db)
+
+    avto = await repository_users.add_avto(number, colour, model, user, db)
     return avto
 
-@router.put("/{number}/update_avto", response_model=AvtoResponse,
+@router.put("/update_avto", response_model=AvtoResponse,
             dependencies=[Depends(RateLimiter(times=1, seconds=2))],
             status_code=status.HTTP_200_OK)
 async def update_avto(
-    number: str  ,
-    new_number: str  ,
+    number: str,
+    new_number: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(auth_service.get_current_user),
-    color: str | None = None ,
+    color: str | None = None,
     model: str | None = None,
-
-
      ):
 
     """
@@ -163,97 +172,81 @@ async def update_avto(
     :param current_user: User: Get the current user
     :return: A user object
     """
+
     avto = await repository_users.update_avto(
-        db,
-        current_user,
         number,
         new_number,
+        db,
+        current_user,
         color,
         model ,
-
           )
 
     if avto is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="NOT FOUND")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.AVTO_NOT_FOUND)
     return avto
 
-# @router.get("/{username}/profile/", status_code=status.HTTP_200_OK)
-# async def get_user_profile(
-#         username: str = Path(),
-#         db: AsyncSession = Depends(get_db),
-# ):
-#     """
-#     The get_user_profile function is a GET request that returns the profile of a user. The username parameter is
-#     required and must be unique. The db parameter uses the get_db function to connect to the database.
+@router.delete("/remove_avto",  status_code=status.HTTP_204_NO_CONTENT)
+async def remove_avto(number: str,\
+    db: AsyncSession = Depends(get_db),\
+    user: User = Depends(auth_service.get_current_user)):
 
-#     :param username: str: Get the username from the path
-#     :param db: AsyncSession: Pass the database session to the function
-#     :return: A dict with the user's profile information
-#     """
-#     user = await repository_users.get_user_by_username(username, db)
-#     if user:
-#         result = await repository_profile.get_profile(user, db)
-#         return result
-#     raise HTTPException(
-#         status_code=status.HTTP_404_NOT_FOUND, detail=messages.USER_NOT_FOUND
-#     )
+    """
+    The remove_post function removes a post from the database.
 
+    :param post_id: int: Specify the post id
+    :param current_user: User: Get the current user
+    :param db: AsyncSession: Get the database session
+    :return: The removed post
+    """
 
-# @router.put("/{username}/profile/update", response_model=UserResponse,
-#             dependencies=[Depends(RateLimiter(times=1, seconds=30))],
-#             status_code=status.HTTP_200_OK)
-# async def update_user_profile(body: UserSchema, db: AsyncSession = Depends(get_db),
-#                               current_user: User = Depends(auth_service.get_current_user)):
+    avto = await repository_users.remove_avto(number, db, user)
+    if avto is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.AVTO_NOT_FOUND)
+    return avto
 
-#     """
-#     The update_user_profile function updates a user's profile.
-#         Args:
-#             - body (UserSchema): The UserSchema object containing the new data for the user.
-#             - db (AsyncSession, optional): [description]. Defaults to Depends(get_db).
-#             - current_user (User, optional): [description]. Defaults to Depends(auth_service.get_current_user).
+@router.get(
+    "/rates_info",
+    response_model=list[RateResponse],
+    dependencies=[Depends(RateLimiter(times=2, seconds=5))],
+)
+async def rates_info(db: AsyncSession = Depends(get_db)):
+    rates_info = await get_rates_info(db)
+    if rates_info is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.RATE_NOT_FOUND)
 
-#     :param body: UserSchema: Validate the request body
-#     :param db: AsyncSession: Get the connection to the database
-#     :param current_user: User: Get the current user
-#     :return: A user object
-#     """
-#     body.password = auth_service.get_password_hash(body.password)
+    """
+    The get_current_user function is a dependency that will be injected into the
+        get_current_user endpoint. It uses the auth_service to retrieve the current user,
+        and returns it if found.
 
-#     if (current_user.email == body.email) and (current_user.username != body.username):
-#         exist_user = await get_user_by_username(body.username, db)
-#         if exist_user is not None:
-#             raise HTTPException(
-#                 status_code=status.HTTP_409_CONFLICT, detail=messages.USER_EXIST
-#             )
+    :param user: User: Specify the type of object that is returned by the auth_service
+    :return: The current user, which is stored in the database
+    """
 
-#     elif (current_user.username == body.username) and (current_user.email != body.email):
-#         exist_user = await get_user_by_email(body.email, db)
-#         if exist_user is not None:
-#             raise HTTPException(
-#                 status_code=status.HTTP_409_CONFLICT, detail=messages.EMAIL_EXIST
-#             )
-#     user = await repository_profile.update_user_profile(body, current_user, db)
+    return rates_info
 
-#     if user is None:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="NOT FOUND")
-#     return user
+@router.get(
+    "/statistics",
+    response_model=list[LogResponse],
+    dependencies=[Depends(RateLimiter(times=2, seconds=5))],
+)
+async def get_current_user(
+        all_info: bool,
+        number: str | None = None,
+        limit: int = Query(10, ge=10, le=500), offset: int = Query(0, ge=0),
+        db: AsyncSession = Depends(get_db), user: User = Depends(auth_service.get_current_user),       
+        ):
+    log = await get_log_info(all_info, number, limit, offset,user, db)
+    if log is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.LOG_NOT_FOUND)
+    """
+    The get_current_user function is a dependency that will be injected into the
+        get_current_user endpoint. It uses the auth_service to retrieve the current user,
+        and returns it if found.
 
+    :param user: User: Specify the type of object that is returned by the auth_service
+    :return: The current user, which is stored in the database
+    """
+    return log
 
-# @router.post("/ban_user/{username}", status_code=status.HTTP_200_OK, response_model=UserResponse)
-# async def request_email(username: str = Path(),
-#                         current_user: User = Depends(auth_service.get_current_user),
-#                         db: AsyncSession = Depends(get_db)):
-#     """
-#     The request_email function is used to ban a user.
-#         The function takes in the username of the user that needs to be banned and returns a boolean value indicating if
-#         the operation was successful or not.
-
-#     :param username: str: Get the username of the user that is to be banned
-#     :param current_user: User: Get the current user
-#     :param db: AsyncSession: Create a database session
-#     :return: A user object
-#     """
-#     if current_user.user_type_id == 3:
-#         banned_user = await repository_users.ban_user(username, db)
-#         return banned_user
-#     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
