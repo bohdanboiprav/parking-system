@@ -43,6 +43,7 @@ app.include_router(router_pages)
 
 templates = Jinja2Templates(directory=BASE_DIR / "src" / "templates")
 
+
 @app.middleware("http")
 async def ban_ips(request: Request, call_next: Callable):
     """
