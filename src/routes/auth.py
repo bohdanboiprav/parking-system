@@ -73,7 +73,6 @@ async def login(
     :return: A jwt, which is a json object with the following keys:
     print()
     """
-
     user = await repository_users.get_user_by_email(body.username, db)
     print(user)
     if user is None:
@@ -103,7 +102,6 @@ async def login(
         "refresh_token": refresh_token,
         "token_type": "bearer",
     }
-
 
 @router.get("/refresh_token", response_model=TokenSchema)
 async def refresh_token(
@@ -138,7 +136,6 @@ async def refresh_token(
         "refresh_token": refresh_token,
         "token_type": "bearer",
     }
-
 
 @router.get("/confirmed_email/{token}")
 async def confirmed_email(token: str, db: AsyncSession = Depends(get_db)):
@@ -190,7 +187,6 @@ async def request_email(
             send_email, user.email, str(request.base_url)
         )
     return {"message": "Check your email for confirmation."}
-
 
 @router.post("/reset_password")
 async def reset_password(
