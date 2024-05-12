@@ -27,5 +27,6 @@ EMAIL_EXIST = "User with this email already exists"
 USER_BANNED = "User is banned"
 RATE_NOT_FOUND = "Rate not found"
 LOG_NOT_FOUND = "Logs not found"
-
+POST_NOT_FOUND = "Post is not found or you are not the owner"
 NO_PERMISSIONS = "You don't have permissions"
+TELEGRAM_WELCOME = "Привіт! Для продовження, будь ласка, поділіться своїм номером телефона."
