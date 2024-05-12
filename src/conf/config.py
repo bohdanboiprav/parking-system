@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import ConfigDict ,field_validator, EmailStr
+from pydantic import ConfigDict, field_validator, EmailStr
 from pydantic_settings import BaseSettings
 
 
@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     CLOUDINARY_API_SECRET: str = "secret"
     APP_ENV: str = "dev"
     ADMIN_PASSWORD: str = "password"
+    TELEGRAM_TOKEN: str
 
     @field_validator("ALGORITHM")
     @classmethod
