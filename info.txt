@@ -12,3 +12,8 @@ poetry export --without-hashes --format=requirements.txt > requirements.txt
 alembic init migrations
 alembic revision --autogenerate -m 'Init'
 alembic upgrade head
+
+
+Send message to Telegram:
+    import src.services.telegram_bot as tg
+    result = tg.send_message(164802149, 'TEST_message')

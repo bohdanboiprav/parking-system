@@ -2,8 +2,6 @@
 # Наш базовий образ - це Linux з попередньо встановленим python-3.11
 FROM python:3.11.6
 
-RUN mkdir -p /var/lib/postgresql/data/pg_notify
-
 # Встановимо робочу директорію всередині контейнера
 RUN mkdir /parking-system
 
@@ -20,4 +18,5 @@ RUN pip install -r requirements.txt
 COPY . .
 
 #CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-
+# Установим права на выполнение для скрипта app.sh
+RUN chmod +x /parking-system/docker/app.sh

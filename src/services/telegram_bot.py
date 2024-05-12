@@ -1,6 +1,6 @@
-# "6694067814:AAGdpn442G3nu_fXSR7qRyuYlMMzaiSKuFw"
 import random
 
+import requests
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ApplicationBuilder, MessageHandler, CommandHandler, filters, CallbackContext
 from src.conf import messages
@@ -13,8 +13,18 @@ async def start(update: Update, context: CallbackContext):
     # Выводим chat_id в консоль
     print("Chat ID:", chat_id)
     # Отправляем сообщение приветствия
-    await update.message.reply_text("Привіт! Для продовження, будь ласка, поділіться своїм номером телефона.",
+    await update.message.reply_text(messages.TELEGRAM_WELCOME,
                                     reply_markup=await get_contact_keyboard())
+
+
+def send_message(chat_id, text):
+    url = f"https://api.telegram.org/bot{settings.TELEGRAM_TOKEN}/sendMessage"
+    params = {
+        "chat_id": chat_id,
+        "text": text
+    }
+    response = requests.get(url, params=params)
+    return response.json()
 
 
 async def echo(update: Update, context: CallbackContext):
@@ -61,6 +71,8 @@ async def get_contact(update: Update, context: CallbackContext):
 async def get_contact_keyboard():
     # Создаем клавиатуру для запроса контакта
     keyboard = [[KeyboardButton("Поделиться номером телефона", request_contact=True)]]
+
+
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
 
 
@@ -105,5 +117,3 @@ def main():
     app.run_polling()
 
 
-if __name__ == "__main__":
-    main()
