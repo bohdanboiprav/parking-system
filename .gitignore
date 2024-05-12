@@ -21,6 +21,7 @@ sdist/
 var/
 wheels/
 share/python-wheels/
+postgres-data/
 *.egg-info/
 .installed.cfg
 *.egg
