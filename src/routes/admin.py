@@ -35,10 +35,10 @@ from decimal import Decimal
 router = APIRouter(prefix="/admin", tags=["admin"])
 configure_cloudinary()
 
-@router.put("/replenishment_of_balags", 
+@router.put("/replenishment_of_balans", 
             dependencies=[Depends(RateLimiter(times=1, seconds=2))],
             status_code=status.HTTP_200_OK)
-async def replenishment_of_balags(
+async def replenishment_of_balans(
     email: str ,
     replenishment: Decimal | None = None ,
     db: AsyncSession = Depends(get_db),
@@ -76,11 +76,7 @@ async def get_users_info(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(auth_service.get_current_user)
     ):
-    if current_user.user_type_id not in (2, 3):
-            raise HTTPException(status_code=403, detail=messages.USER_NOT_PERMISSION)
-    info_users = await get_admin_users_info(limit, offset, current_user, db)
-    if info_users is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.USER_NOT_FOUND)
+
     """
     The function get_users_info receives the input mail or None if the input is None,
        and returns information about all users if the mail returns information about the user of this mail.
@@ -99,18 +95,17 @@ async def get_users_info(
     :param current_user: User: Get the current user
     :return: A users object
     """
+    info_users = await get_admin_users_info(email, limit, offset, current_user, db)
+    if info_users is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.USER_NOT_FOUND)
     return info_users
 
 @router.get(
     "/search_avto",
     dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
-async def get_number_avto(number: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(auth_service.get_current_user)):
-    if current_user.user_type_id not in (2, 3):
-            raise HTTPException(status_code=403, detail=messages.USER_NOT_PERMISSION)    
-    info_avto = await get_number_avto(number, current_user, db)
-    if info_avto is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.AVTO_NOT_FOUND)
+async def search_number_avto(number: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(auth_service.get_current_user)):
+
     """
     The get_current_avto function for searching information about 
         a car by number. Receives the car number as input.
@@ -120,6 +115,11 @@ async def get_number_avto(number: str, db: AsyncSession = Depends(get_db), curre
     :param current_user: User: Get the current user
     :return: A users object
     """
+    if current_user.user_type_id not in (2, 3):
+        raise HTTPException(status_code=403, detail=messages.USER_NOT_PERMISSION)    
+    info_avto = await get_number_avto(number, db)
+    if info_avto is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.AVTO_NOT_FOUND)
     return info_avto
 
 @router.put("/ban_avto", response_model=AdminAvtoResponse,
@@ -150,7 +150,7 @@ async def ban_avto(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.AVTO_NOT_FOUND)
     return avto
 
-@router.delete("/remove_avto",  status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/remove_avto",  status_code=status.HTTP_200_OK)
 async def remove_avto(number: str,\
     db: AsyncSession = Depends(get_db),\
     current_user: User = Depends(auth_service.get_current_user)):
@@ -167,7 +167,7 @@ async def remove_avto(number: str,\
     avto = await repository_admin.remove_avto(number, db, current_user)
     if avto is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.AVTO_NOT_FOUND)
-    return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.RATE_NOT_FOUND)
+    return { "detail": "Avto deleted successfully"}
 
 
 @router.get(
@@ -180,11 +180,7 @@ async def info_ban_avto(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(auth_service.get_current_user)
     ):
-    if current_user.user_type_id not in (2, 3):
-            raise HTTPException(status_code=403, detail=messages.USER_NOT_PERMISSION)
-    ban_avto = await get_ban_avto(limit, offset, current_user, db)
-    if ban_avto is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.AVTO_NOT_FOUND)
+
     """   
     Search info_ban_avto function for blocked cars in the database.
 
@@ -194,6 +190,16 @@ async def info_ban_avto(
     :param current_user: User: Get the current user
     :return: A avto object
     """
+    if current_user.user_type_id not in (2, 3):
+            raise HTTPException(status_code=403, detail=messages.USER_NOT_PERMISSION)
+    ban_avto = await get_ban_avto(limit, offset, current_user, db)
+    if ban_avto is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.AVTO_NOT_FOUND)
+    if current_user.user_type_id not in (2, 3):
+            raise HTTPException(status_code=403, detail=messages.USER_NOT_PERMISSION)
+    ban_avto = await get_ban_avto(limit, offset, current_user, db)
+    if ban_avto is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.AVTO_NOT_FOUND)
     return ban_avto
 
 @router.post("/create_rate", response_model=RateResponse)
@@ -214,7 +220,7 @@ async def create_rate(
     :param current_user: User: Get the user who is currently logged in
     :param db: AsyncSession: Pass the database session to the repository layer
     :return: A RateResponse object
-    """
+    """ 
     if current_user.user_type_id not in (2, 3):
             raise HTTPException(status_code=403, detail=messages.USER_NOT_PERMISSION)
     rate = await repository_admin.create_rate(rate_name, price, pricetime, current_user, db)
@@ -224,9 +230,9 @@ async def create_rate(
             dependencies=[Depends(RateLimiter(times=1, seconds=2))],
             status_code=status.HTTP_200_OK)
 async def update_rate(
-    rate_name: str,
-    price: Decimal,
-    pricetime: int,
+    rate_name: str,  
+    time_for_price: int,
+    price: Decimal | None = None,
     current_user: User = Depends(auth_service.get_current_user),
     db: AsyncSession = Depends(get_db)
     ):
@@ -248,12 +254,12 @@ async def update_rate(
     """
     if current_user.user_type_id not in (2, 3):
             raise HTTPException(status_code=403, detail=messages.USER_NOT_PERMISSION)
-    rate = await repository_admin.update_rate(rate_name, price, pricetime, db, current_user )
+    rate = await repository_admin.update_rate(rate_name, price, time_for_price, db, current_user )
     if rate is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.RATE_NOT_FOUND)
     return rate
 
-@router.delete("/remove_rate",  status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/remove_rate",  status_code=status.HTTP_200_OK)
 async def remove_rate(
     rate_name: str,\
     db: AsyncSession = Depends(get_db),\
@@ -266,12 +272,10 @@ async def remove_rate(
     :param db: AsyncSession: Pass the database session to the repository layer.
     :return: A Rate object
     """
-    if current_user.user_type_id not in (2, 3):
-            raise HTTPException(status_code=403, detail=messages.USER_NOT_PERMISSION)
     rate = await repository_admin.remove_rate(rate_name, db, current_user)
     if rate is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.RATE_NOT_FOUND)
-    return rate
+    return { "detail": "Rate deleted successfully"}
 
 @router.post("/add_tariff_time", response_model=RateTimeResponse)
 async def add_tariff_time(
@@ -299,8 +303,8 @@ async def add_tariff_time(
     :param friday: bool: Day of the week
     :param saturday: bool: Day of the week
     :param sunday: bool: Day of the week
-    :param starttime: time: Start of tariff plan
-    :param stoptime: time: Stщз of tariff plan
+    :param starttime: time: Start of tariff plan  HH:MM:SS
+    :param stoptime: time: Stщз of tariff plan   HH:MM:SS
     :param current_user: User: Get the user who is currently logged in
     :param db: AsyncSession: Pass the database session to the repository layer
     :return: A RateTimeResponse object
@@ -381,7 +385,7 @@ async def remove_tariff_time(
     tariff_time = await repository_admin.remove_tariff_time(id_tariff_time, db, current_user)
     if tariff_time is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.TARIF_TIME_NOT_FOUND)
-    return tariff_time
+    return { "detail": " deleted successfully"}
 
 @router.get(
     "/rates_info",
@@ -391,10 +395,9 @@ async def remove_tariff_time(
 async def rates_info(
     all_rates : bool,
     rate_name : str | None = None,
-    db: AsyncSession = Depends(get_db)):
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(auth_service.get_current_user)):
     rates_info = await get_rates_info(all_rates, rate_name, db)
-    if rates_info is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.RATE_NOT_FOUND)
     """
     Function for displaying information about tariff plans. 
        Takes as input a logical value and the name of the tariff.
@@ -405,6 +408,8 @@ async def rates_info(
     :param db: AsyncSession: Get the database session
     :return: A Rate Time object
     """
+    if rates_info is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.RATE_NOT_FOUND)
     return rates_info
 
 # @router.get(

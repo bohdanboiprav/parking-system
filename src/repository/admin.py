@@ -32,13 +32,13 @@ async def update_balans(
     :param current_user: User: Get the current user
     :return: A user object
     """
-    if replenishment == None:
-        raise HTTPException(status_code=400, detail=messages.NO_DATA)
     carer = select(User).filter_by(email=email)
     carent_user = await db.execute(carer)
     carent_user = carent_user.scalars().first()
-    if carent_user is None:
+    if not carent_user:
         raise HTTPException(status_code=404, detail=messages.USER_NOT_FOUND)
+    if replenishment == None:
+        raise HTTPException(status_code=400, detail=messages.NO_DATA)
     carent_user.balance = replenishment + carent_user.balance
     db.add(carent_user)
     await db.commit()
@@ -72,7 +72,7 @@ async def get_admin_users_info(email, limit, offset, user: User, db: AsyncSessio
     else :
         stmt = select(User).filter_by(email=email).offset(offset).limit(limit)
         stmp = await db.execute(stmt)
-        info = stmp.scalars().first()
+        info = stmp.scalars().unique().all()
         return info        
 
 # async def get_user_info(user: User, db: AsyncSession = Depends(get_db)):
@@ -93,7 +93,7 @@ async def get_admin_users_info(email, limit, offset, user: User, db: AsyncSessio
 #     info = stmp.scalars().unique().all()
 #     return info
     
-async def get_number_avto(number, email: str, db: AsyncSession = Depends(get_db)):
+async def get_number_avto(number, db: AsyncSession = Depends(get_db)):
     """
     The get_number_avto function for searching information about 
         a car by number. Receives the car number as input.
@@ -108,18 +108,18 @@ async def get_number_avto(number, email: str, db: AsyncSession = Depends(get_db)
     user = user.scalars().first()
     result = {
         "number": number,
-        "firstname": user[0].firstname,
-        "lastname": user[0].lastname,
-        "email": user[0].email,
-        "mobilenamber": user[0].mobilenamber,
-        "databirthday": user[0].databirthday,
-        "balance": user[0].balance,
-        "notification": user[0].notification,
-        "avatar": user[0].avatar,
-        "created_at": user[0].created_at,
-        "confirmed": user[0].confirmed,
-        "is_banned": user[0].is_banned,
-        "all_avno": user[0].all_avto,
+        "firstname": user.firstname,
+        "lastname": user.lastname,
+        "email": user.email,
+        "mobilenamber": user.mobilenamber,
+        "databirthday": user.databirthday,
+        "balance": user.balance,
+        "notification": user.notification,
+        "avatar": user.avatar,
+        "created_at": user.created_at,
+        "confirmed": user.confirmed,
+        "is_banned": user.is_banned,
+        "all_avno": user.all_avto,
 
         }
     return result
@@ -268,6 +268,8 @@ async def update_rate(
     rate = rate.scalars().first()
     if rate is None:
         raise HTTPException(status_code=404, detail=messages.RATE_NOT_FOUND)
+    if price == None:
+        raise HTTPException(status_code=404, detail=messages.NO_DATA)
     rate.ratename = ratename
     rate.price  = price 
     rate.pricetime = pricetime

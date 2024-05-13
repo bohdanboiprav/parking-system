@@ -36,7 +36,7 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class RateTimeResponse(BaseModel):
-   # id : int | None
+    id : int | None
     monday: bool | None
     tuesday: bool | None
     wednesday: bool | None
