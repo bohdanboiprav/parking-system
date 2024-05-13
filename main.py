@@ -125,3 +125,24 @@ async def healthchecker(db: AsyncSession = Depends(get_db)):
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=messages.MAIN_DB_ERROR_CONNECTION)
+
+@app.get("/")
+def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.get("/signup")
+def about(request: Request):
+    return templates.TemplateResponse("signup.html", {"request": request})
+
+@app.get("/login")
+def login(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+@app.get("/about")
+def about(request: Request):
+    return templates.TemplateResponse("about.html", {"request": request})
+
+@app.get("/pricing")
+def pricing(request: Request):
+    return templates.TemplateResponse("pricing.html", {"request": request})
