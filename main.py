@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
 from src.database.db import get_db
-from src.routes import auth, users
+from src.routes import auth, users, admin
 from src.conf.config import settings
 from src.pages.router import router as router_pages
 
@@ -38,9 +38,11 @@ app.mount("/src/static", StaticFiles(directory=directory), name="static")
 
 app.include_router(auth.router, prefix='/api')
 app.include_router(users.router, prefix='/api')
+app.include_router(admin.router, prefix='/api')
 app.include_router(router_pages)
 
 templates = Jinja2Templates(directory=BASE_DIR / "src" / "templates")
+
 
 @app.middleware("http")
 async def ban_ips(request: Request, call_next: Callable):

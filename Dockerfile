@@ -14,8 +14,10 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 
+
 # Скопіюємо інші файли в робочу директорію контейнера
 COPY . .
 
 #CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-
+# Установим права на выполнение для скрипта app.sh
+RUN chmod +x /parking-system/docker/app.sh

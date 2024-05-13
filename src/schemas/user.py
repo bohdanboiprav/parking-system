@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime , date
+from datetime import datetime , date ,time
 from pydantic import BaseModel, EmailStr, ConfigDict, Field 
 from decimal import Decimal
 from typing import List, Optional ,Dict
@@ -34,8 +34,36 @@ class UserResponse(BaseModel):
     avatar: str
     all_avto: List[AvtoResponse] | None
     model_config = ConfigDict(from_attributes=True)
-    
 
+class RateTimeResponse(BaseModel):
+   # id : int | None
+    monday: bool | None
+    tuesday: bool | None
+    wednesday: bool | None
+    thursday: bool | None
+    friday: bool | None
+    saturday: bool | None
+    sunday: bool | None
+    starttime: time | None
+    stoptime: time  | None
+
+    
+class RateResponse(BaseModel):
+    ratename: str | None
+    price: Decimal | None
+    pricetime: int | None
+    ratestime: List[RateTimeResponse] | None
+    model_config = ConfigDict(from_attributes=True)
+
+class LogResponse(BaseModel):
+    number: str | None
+    start: datetime | None
+    stop: datetime | None
+    billcash: Decimal | None
+    billbalance: Decimal  | None  
+    discount: Decimal  | None
+    in_parking : bool 
+   
 
 
 class UserProfileResponse(BaseModel):

@@ -22,12 +22,13 @@ from src.entity.models import User
 from src.repository import users as repository_users
 from src.schemas.user import UserSchema, TokenSchema, UserResponse, RequestEmail
 from src.services.auth import auth_service
-from src.services.email import send_email
+from src.services.email_ import send_email
 from src.conf import messages
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 get_refresh_token = HTTPBearer()
 get_access_token = HTTPBearer()
+
 
 @router.post(
     "/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED
@@ -38,7 +39,6 @@ async def signup(
         request: Request,
         db: AsyncSession = Depends(get_db),
 ):
-
     """
     The signup function creates a new user in the database.
         It takes a UserSchema object as input, and returns the newly created user.
@@ -73,9 +73,8 @@ async def login(
     :return: A jwt, which is a json object with the following keys:
     print()
     """
-
     user = await repository_users.get_user_by_email(body.username, db)
-    print( user )
+    print(user)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail=messages.AUTH_INVALID_EMAIL
@@ -103,7 +102,6 @@ async def login(
         "refresh_token": refresh_token,
         "token_type": "bearer",
     }
-
 
 @router.get("/refresh_token", response_model=TokenSchema)
 async def refresh_token(
@@ -138,7 +136,6 @@ async def refresh_token(
         "refresh_token": refresh_token,
         "token_type": "bearer",
     }
-
 
 @router.get("/confirmed_email/{token}")
 async def confirmed_email(token: str, db: AsyncSession = Depends(get_db)):
@@ -190,7 +187,6 @@ async def request_email(
             send_email, user.email, str(request.base_url)
         )
     return {"message": "Check your email for confirmation."}
-
 
 @router.post("/reset_password")
 async def reset_password(
