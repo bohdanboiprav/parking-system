@@ -22,7 +22,7 @@ from src.entity.models import User
 from src.repository import users as repository_users
 from src.schemas.user import UserSchema, TokenSchema, UserResponse, RequestEmail
 from src.services.auth import auth_service
-from src.services.email import send_email
+from src.services.email_ import send_email
 from src.conf import messages
 
 router = APIRouter(prefix="/auth", tags=["auth"])

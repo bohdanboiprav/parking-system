@@ -36,3 +36,6 @@ NO_DATA = "no data "
 
 
 NO_PERMISSIONS = "You don't have permissions"
+POST_NOT_FOUND = "Post is not found or you are not the owner"
+NO_PERMISSIONS = "You don't have permissions"
+TELEGRAM_WELCOME = "Привіт! Для продовження, будь ласка, поділіться своїм номером телефона."
