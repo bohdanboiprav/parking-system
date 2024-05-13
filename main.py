@@ -1,35 +1,48 @@
-from pathlib import Path
-from src.conf import messages
-
 import redis.asyncio as redis
+
+from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Callable
 
 from ipaddress import ip_address
+
 from fastapi import FastAPI, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi_limiter import FastAPILimiter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
+from src.conf import messages
 from src.database.db import get_db
 from src.routes import auth, users
 from src.conf.config import settings
 from src.pages.router import router as router_pages
+from src.services.tg_bot import bot, dp, types
 
-app = FastAPI()
+#######
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await bot.set_webhook(url=settings.WEBHOOK_URL)
+    yield
+    await bot.delete_webhook()
+
+WEBHOOK_PATH = f"/bot/{settings.TELEGRAM_TOKEN}"
+WEBHOOK_URL = f"{settings.WEBHOOK_URL}{WEBHOOK_PATH}"
+#######
+
+app = FastAPI(lifespan=lifespan)
 
 banned_ips = [ip_address("192.168.255.1"), ip_address("192.168.255.1")]
 
-origins = ["*"]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 BASE_DIR = Path(__file__).parent
@@ -41,6 +54,7 @@ app.include_router(users.router, prefix='/api')
 app.include_router(router_pages)
 
 templates = Jinja2Templates(directory=BASE_DIR / "src" / "templates")
+
 
 @app.middleware("http")
 async def ban_ips(request: Request, call_next: Callable):
@@ -122,3 +136,9 @@ async def healthchecker(db: AsyncSession = Depends(get_db)):
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=messages.MAIN_DB_ERROR_CONNECTION)
+
+
+@app.post('/')
+async def bot_webhook(update: dict):
+    telegram_update = types.Update(**update)
+    await dp.feed_update(bot=bot, update=telegram_update)
