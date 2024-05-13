@@ -27,5 +27,12 @@ EMAIL_EXIST = "User with this email already exists"
 USER_BANNED = "User is banned"
 RATE_NOT_FOUND = "Rate not found"
 LOG_NOT_FOUND = "Logs not found"
+RATE_IS_EXISTS = "Rate already exists"
+TARIF_TIME_NOT_FOUND = "Tariff time not found"
+TARIF_TIME_REMOVE = "Tariff time remove"
+ENPTY_INPUT_FIELD = "Empty input field"
+WRONG_DATA = "wrong data"
+NO_DATA = "no data "
+
 
 NO_PERMISSIONS = "You don't have permissions"
