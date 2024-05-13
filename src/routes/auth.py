@@ -29,6 +29,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 get_refresh_token = HTTPBearer()
 get_access_token = HTTPBearer()
 
+
 @router.post(
     "/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED
 )
@@ -73,7 +74,7 @@ async def login(
     print()
     """
     user = await repository_users.get_user_by_email(body.username, db)
-    print( user )
+    print(user)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail=messages.AUTH_INVALID_EMAIL
