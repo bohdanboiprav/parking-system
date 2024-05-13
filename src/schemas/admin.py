@@ -20,3 +20,20 @@ class AdminUserResponse(BaseModel):
     avatar: str
     all_avto: List[AvtoResponse] | None
     model_config = ConfigDict(from_attributes=True)
+
+class AdminAvtoResponse(BaseModel):
+    number: str | None 
+    color: str | None 
+    model: str | None 
+    is_banned: bool | None
+
+class IsParkingLog(BaseModel):
+    number: str | None 
+    start: datetime | None
+    Cars_in_the_parking: datetime | None
+
+class LogResponse(BaseModel):
+    id: int | None 
+    number: str | None
+    model_config = ConfigDict(from_attributes=True)
+
