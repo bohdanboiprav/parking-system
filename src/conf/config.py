@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     APP_ENV: str = "dev"
     ADMIN_PASSWORD: str = "password"
     TELEGRAM_TOKEN: str = "6694067814:AAEL9ue1obl3_Zv5cCPcVhFKUt-qyqj9HDU"
+    WEBHOOK_URL: str = "https://4c52-37-57-147-116.ngrok-free.app"
 
     @field_validator("ALGORITHM")
     @classmethod

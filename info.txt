@@ -15,5 +15,12 @@ alembic upgrade head
 
 
 Send message to Telegram:
-    import src.services.telegram_bot as tg
+    import src.services.tg_bot as tg
     result = tg.send_message(164802149, 'TEST_message')
+    Ответ: {'ok': True, 'result': {'message_id': 362, 'from': {'id': 6694067814, 'is_bot': True, 'first_name': 'Parking_bot', 'username': 'Parking_Project_bot'}, 'chat': {'id': 164802149, 'first_name': 'Артем', 'last_name': 'Ф 💠', 'username': 'FitisovArtem', 'type': 'private'}, 'date': 1715605628, 'text': 'TEST_message'}}
+
+Take photo by camera
+    import asyncio
+    from src.services.get_photo import main
+    # Вызываем функцию main из camera.py и получаем filename
+    filename = asyncio.run(main())
