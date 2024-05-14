@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import ConfigDict ,field_validator, EmailStr
+from pydantic import ConfigDict, field_validator, EmailStr
 from pydantic_settings import BaseSettings
 
 
@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     CLOUDINARY_API_SECRET: str = "secret"
     APP_ENV: str = "dev"
     ADMIN_PASSWORD: str = "password"
+    TELEGRAM_TOKEN: str = "6694067814:AAEL9ue1obl3_Zv5cCPcVhFKUt-qyqj9HDU"
+    WEBHOOK_URL: str = "https://4c52-37-57-147-116.ngrok-free.app"
 
     @field_validator("ALGORITHM")
     @classmethod
@@ -30,7 +32,7 @@ class Settings(BaseSettings):
             raise ValueError("algorithm must be HS256 or HS512")
         return v
 
+    model_config = ConfigDict(extra='ignore', env_file=".env", env_file_encoding="utf-8")  # noqa
 
-    model_config = ConfigDict(extra='ignore', env_file=".env", env_file_encoding="utf-8")
 
 settings = Settings()

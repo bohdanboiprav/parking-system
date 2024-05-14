@@ -6,12 +6,26 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.conf.config import settings
 from src.database.db import get_db
-from src.entity.models import User ,Avto
-from src.schemas.user import UserSchema , AvtoResponse
+from src.entity.models import User, Avto, Rate ,Log
+from src.schemas.user import UserSchema, AvtoResponse, RateResponse, RateTimeResponse
 from typing import List
 from src.conf import messages
 
 
+
+# async def get_user_by_email(email, user: str, db: AsyncSession = Depends(get_db)):  
+#     """
+#     The get_user_by_email function takes an email address and returns the user associated with that email.
+#     If no such user exists, it returns None.
+
+#     :param email: str: Pass the email of the user to be retrieved
+#     :param db: AsyncSession: Pass in the database session
+#     :return: A user object or none
+#     """
+#     user = select(User).filter_by(email=email)
+#     user = await db.execute(user)
+#     user = user.scalars().first()
+#     return user
 
 async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
     
@@ -23,17 +37,17 @@ async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
     :param db: AsyncSession: Pass in the database session
     :return: A user object or none
     """
-    
+ 
     stmt = select(User).filter_by(email=email)
-
     user = await db.execute(stmt)
     user = user.scalars().first()
     return user
 
+
 async def get_user_info(user: User, db: AsyncSession = Depends(get_db)):
     
     """
-    The get_user_by_email function takes an email address and returns the user associated with that email.
+    The get_user_info function takes an email address and returns the user associated with that email.
     If no such user exists, it returns None.
 
     :param email: str: Pass the email of the user to be retrieved
@@ -46,22 +60,25 @@ async def get_user_info(user: User, db: AsyncSession = Depends(get_db)):
     info = stmp.scalars().unique().all()
     return info
 
-async def get_user_by_username(username: str, db: AsyncSession = Depends(get_db)):
-    """
-    The get_user_by_username function takes a username and returns the user object associated with that username.
-    If no such user exists, it returns None.
+# async def get_user_by_username(username: str, db: AsyncSession = Depends(get_db)):
 
-    :param username: str: Specify the username of the user we want to retrieve
-    :param db: AsyncSession: Pass the database session into the function
-    :return: A user object or none
-    """
-    stmt = select(User).filter_by(username=username)
-    user = await db.execute(stmt)
-    user = user.scalar_one_or_none()
-    return user
+#     """
+#     The get_user_by_username function takes a username and returns the user object associated with that username.
+#     If no such user exists, it returns None.
+
+#     :param username: str: Specify the username of the user we want to retrieve
+#     :param db: AsyncSession: Pass the database session into the function
+#     :return: A user object or none
+#     """
+
+#     stmt = select(User).filter_by(username=username)
+#     user = await db.execute(stmt)
+#     user = user.scalar_one_or_none()
+#     return user
 
 
 async def create_user(body: UserSchema, db: AsyncSession = Depends(get_db)):
+
     """
     The create_user function creates a new user in the database.
 
@@ -69,6 +86,7 @@ async def create_user(body: UserSchema, db: AsyncSession = Depends(get_db)):
     :param db: AsyncSession: Get the database session
     :return: The newly created user object
     """
+
     avatar = 'https://asset.cloudinary.com/dkprmxdfc/cbcb3e506c226483c2be7155f6e3ff7c'
     try:
         g = Gravatar(body.email)
@@ -84,6 +102,7 @@ async def create_user(body: UserSchema, db: AsyncSession = Depends(get_db)):
 
 
 async def update_token(user: User, token: str | None, db: AsyncSession):
+    
     """
     The update_token function updates the refresh token for a user.
 
@@ -92,11 +111,13 @@ async def update_token(user: User, token: str | None, db: AsyncSession):
     :param db: AsyncSession: Commit the changes to the database
     :return: The user object
     """
+
     user.refresh_token = token
     await db.commit()
 
 
 async def confirmed_email(email: str, db: AsyncSession) -> None:
+
     """
     The confirmed_email function takes in an email and a database session,
     and sets the confirmed field of the user with that email to True.
@@ -105,12 +126,14 @@ async def confirmed_email(email: str, db: AsyncSession) -> None:
     :param db: AsyncSession: Pass in the database session
     :return: None
     """
+
     user = await get_user_by_email(email, db)
     user.confirmed = True
     await db.commit()
 
 
 async def update_avatar_url(email: str, url: str | None, db: AsyncSession) -> User:
+
     """
     The update_avatar_url function updates the avatar url of a user.
 
@@ -119,34 +142,33 @@ async def update_avatar_url(email: str, url: str | None, db: AsyncSession) -> Us
     :param db: AsyncSession: Pass in the database session
     :return: The updated user
     """
+
     user = await get_user_by_email(email, db)
     user.avatar = url
     await db.commit()
     await db.refresh(user)
     return user
 
-async def add_avto(body: AvtoResponse, current_user: User, db: AsyncSession) :
+async def add_avto(number, color, model, current_user: User, db: AsyncSession) :
     """
-    The add_tag_to_post function adds a tag to the post.
-        Args:
-            - body (TagUpdate): The TagUpdate object containing the name of the post and tags to add.
-            - current_user (User): The User object representing who is making this request.
-            - db (AsyncSession): A database session for interacting with Postgresql via SQLAlchemy Core.
+    The function of adding car data to the database. Accepts the number, color and size of the car.
 
-    :param body: TagUpdate: Get the name of the post and tags to add
-    :param current_user: User: Check if the user is authorized to add tags to a post
-    :param db: AsyncSession: Pass the database session to the function
-    :return: A post with a new tag
+    :param number: str or None: Car`s number
+    :param colour: str or None: Car`s colour
+    :param model: str or None: Car`s model
+    :param current_user: User: Get the user who is currently logged in
+    :param db: AsyncSession: Pass the database session to the repository layer
+    :return: The created avto with the new id
     """
-    avto = select(Avto).filter_by(user=current_user).filter(Avto.number == body.number)
+    avto = select(Avto).filter_by(user=current_user).filter(Avto.number == number)
     avto = await db.execute(avto)
     avto = avto.scalars().first()
     if avto:
-        raise HTTPException(status_code=400, detail="Avto with this number already exists")
+        raise HTTPException(status_code=400, detail=messages.AVTO_IS_EXISTS)
     avto = Avto(
-        number=body.number,
-        color=body.color,
-        model=body.model,
+        number=number,
+        color=color,
+        model=model,
         user=current_user)
     db.add(avto)
     await db.commit()
@@ -154,60 +176,124 @@ async def add_avto(body: AvtoResponse, current_user: User, db: AsyncSession) :
     return avto
 
 async def update_avto(
+    number: str,
     db: AsyncSession,
     user: User,
-    number: str  ,
-    new_number: str  ,
-    color: str | None = None ,
-    model: str | None = None , 
+    color: str | None = None,
+    model: str | None = None, 
     ):
     """
-    The update_user_profile function updates a user's profile information.
+    The update_avto function updates a Avto's data.
         Args:
-            - body (UserSchema): The UserSchema object containing the new user data.
-            - user (User): The User object to be updated.
 
-    :param body: UserSchema: Get the data from the request body
-    :param user: User: Get the user object from the database
-    :param db: AsyncSession: Pass in the database session
-    :return: The updated user object
+    :param number: str or None: Car`s number
+    :param colour: str or None: Car`s colour
+    :param model: str or None: Car`s model
+    :param db: AsyncSession: Get the connection to the database
+    :param current_user: User: Get the current user
+    :return: A avto object
     """
-    avto =  select(Avto).filter_by(number=number)
+    avto = select(Avto).filter_by(user=user).filter(Avto.number == number)
+    avto = await db.execute(avto)
+    avto = avto.scalars().first()
+    if avto is None:
+        raise HTTPException(status_code=404, detail=messages.AVTO_NOT_FOUND)
+    if avto.user_id != user.id:
+        raise HTTPException(status_code=403, detail=messages.USER_NOT_PERMISSION)
+    avto.color = color
+    avto.model = model
+    db.add(avto)
+    await db.commit()
+    await db.refresh(avto)
+    return avto
+
+async def remove_avto(number: str, db: AsyncSession, current_user: User,):
+    """
+    The remove_avto function removes a avto from the database.
+
+    :param number: str: Specify the avto number
+    :param current_user: User: Get the current user
+    :param db: AsyncSession: Get the database session
+    :return: The removed avto
+    """
+    avto = select(Avto).filter_by(user=current_user).filter(Avto.number == number)
     avto = await db.execute(avto)
     avto = avto.scalars().first()
     if not avto:
         raise HTTPException(status_code=404, detail=messages.AVTO_NOT_FOUND)
-    if avto.user_id != user.id:
-        raise HTTPException(status_code=403, detail=messages.AVTO_NOT_PERMISSION)
-    avto.number = new_number
-    avto.color = color
-    avto.model = model
+    if avto.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail=messages.USER_NOT_PERMISSION)
     await db.commit()
-    await db.refresh(avto)
-
+    await db.delete(avto)
+    await db.commit()
     return avto
 
-async def ban_user(username: str, db: AsyncSession):
+async def get_rates_info(all_rates, rate_name, db: AsyncSession = Depends(get_db)):
     """
-    The ban_user function takes a username and an asyncpg database connection as arguments.
-    It then queries the database for the user with that username, and if it finds one, sets their is_banned flag to True.
-    The function also deletes any refresh tokens associated with that user from Redis.
+    Function for displaying information about tariffs in the park.
 
-    :param username: str: Specify the username of the user to be banned
-    :param db: AsyncSession: Pass in the database session
-    :return: The user object
+    :param all_rates: Bool: A logical evolution if it is true to search for all tariffs.
+    :param rate_name: str | None = None: Rate name info
+    :return: A rates object
     """
-    user = await get_user_by_username(username, db)
-    if user:
-        cache = redis.Redis(
-            host=settings.REDIS_HOST,
-            port=settings.REDIS_PORT,
-            db=0,
-            password=settings.REDIS_PASSWORD,
-        )
-        user.is_banned = True
-        user.refresh_token = None
-        cache.delete(str(user.email))
-        await db.commit()
-        await db.refresh(user)
-        return user
+    if all_rates == True:
+        rates = select(Rate)
+        rates =  await db.execute(rates)
+        rates =  rates.scalars().unique().all()
+        if not rates:
+            raise HTTPException(status_code=404, detail=messages.RATE_NOT_FOUND)
+        return rates
+    else:
+        rate = select(Rate).filter_by(ratename = rate_name)
+        rate =  await db.execute(rate)
+        rate =  rate.scalars().unique().all()
+        if not rate:
+            raise HTTPException(status_code=404, detail=messages.RATE_NOT_FOUND)
+        return rate
+    
+# async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
+    
+#     """
+#     The get_user_by_email function takes an email address and returns the user associated with that email.
+#     If no such user exists, it returns None.
+
+#     :param email: str: Pass the email of the user to be retrieved
+#     :param db: AsyncSession: Pass in the database session
+#     :return: A user object or none
+#     """
+ 
+#     stmt = select(User).filter_by(email=email)
+#     user = await db.execute(stmt)
+#     user = user.scalars().first()
+#     return user
+
+
+async def get_log_info(all_info ,number_avto, limit: int, offset: int, user: User, db: AsyncSession ):
+    """
+    Function for searching user parking visit data in the database.
+
+    :param all_info: bool: A logical evolution if it is true to search for all tariffs.
+    :param number: str: Specify the type of object that is returned by the auth_service
+    :param limit (int): The maximum number of users in the function response.
+    :param offset(int): The minimum number of users in the function response.
+    :param user: User: Specify the type of object that is returned by the auth_service
+    :return: Log list
+    """
+    stmt = select(User).filter_by(email=user.email)
+    user = await db.execute(stmt)
+    user = user.scalars().first()
+    if not user:
+            raise HTTPException(status_code=404, detail=messages.AVTO_NOT_FOUND) 
+    else:
+        if all_info == True:
+            c = len(user.all_avto) - 1
+            for number in range(c) :
+                user.all_avto[number].number
+        else:
+            for num in range(len(user.all_avto)) :
+                if user.all_avto[num].number == number_avto :
+                    stmt = select(Log).filter(Log.number == number_avto).offset(offset).limit(limit)
+                    info = await db.execute(stmt)
+                    info = info.scalars().unique().all()
+                    return info 
+
