@@ -28,6 +28,7 @@ postgres-data/
 MANIFEST
 model.h5
 anpr_model.h5
+model_last3.keras
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

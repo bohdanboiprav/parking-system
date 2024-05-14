@@ -6,7 +6,7 @@ from keras.src.utils import load_img, img_to_array
 import keras
 from tensorflow.keras.losses import MSE
 
-model = keras.models.load_model('src/services/anpr_model.h5')
+model = keras.models.load_model('src/services/model_last3.keras')
 
 
 async def plates_recognition(image_path, model):

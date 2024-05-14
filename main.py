@@ -18,23 +18,34 @@ from sqlalchemy import text
 
 from src.conf import messages
 from src.database.db import get_db
-from src.routes import auth, users, admin, reports, plates
+from src.routes import auth, users, admin, plates
 from src.conf.config import settings
 from src.pages.router import router as router_pages
 from src.services.tg_bot import bot, dp, types
+
 
 #######
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await bot.set_webhook(url=settings.WEBHOOK_URL)
+    r = await redis.Redis(
+                host=settings.REDIS_HOST,
+                port=settings.REDIS_PORT,
+                db=0,
+                password=settings.REDIS_PASSWORD,
+            )
+    await FastAPILimiter.init(r)
+    yield
+    await FastAPILimiter.close()
     yield
     await bot.delete_webhook()
+
+app = FastAPI(lifespan=lifespan)
 
 WEBHOOK_PATH = f"/bot/{settings.TELEGRAM_TOKEN}"
 WEBHOOK_URL = f"{settings.WEBHOOK_URL}{WEBHOOK_PATH}"
 #######
 
-app = FastAPI(lifespan=lifespan)
 
 banned_ips = [ip_address("192.168.255.1"), ip_address("192.168.255.1")]
 
@@ -53,7 +64,6 @@ app.include_router(auth.router, prefix='/api')
 app.include_router(users.router, prefix='/api')
 app.include_router(admin.router, prefix='/api')
 app.include_router(plates.router, prefix='/api')
-app.include_router(reports.router, prefix='/api')
 app.include_router(router_pages)
 
 templates = Jinja2Templates(directory=BASE_DIR / "src" / "templates")
@@ -79,25 +89,6 @@ async def ban_ips(request: Request, call_next: Callable):
             )
     response = await call_next(request)
     return response
-
-
-@app.on_event("startup")
-async def startup():
-    """
-    The startup function is called when the application starts up.
-    It's a good place to initialize things that are needed by your app,
-    like connecting to databases or initializing caches.
-
-    :return: A list of functions that are executed when the application starts
-    :doc-author: Trelent
-    """
-    r = await redis.Redis(
-        host=settings.REDIS_HOST,
-        port=settings.REDIS_PORT,
-        db=0,
-        password=settings.REDIS_PASSWORD,
-    )
-    await FastAPILimiter.init(r)
 
 
 @app.get("/", response_class=HTMLResponse, description="Main Page")
@@ -140,28 +131,8 @@ async def healthchecker(db: AsyncSession = Depends(get_db)):
         print(e)
         raise HTTPException(status_code=500, detail=messages.MAIN_DB_ERROR_CONNECTION)
 
-@app.get("/")
-def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
 
-
-@app.get("/signup")
-def about(request: Request):
-    return templates.TemplateResponse("signup.html", {"request": request})
-
-@app.get("/login")
-def login(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
-
-@app.get("/about")
-def about(request: Request):
-    return templates.TemplateResponse("about.html", {"request": request})
-
-@app.get("/pricing")
-def pricing(request: Request):
-    return templates.TemplateResponse("pricing.html", {"request": request})
-
-@app.post('/')
+@app.post("/")
 async def bot_webhook(update: dict):
     telegram_update = types.Update(**update)
     await dp.feed_update(bot=bot, update=telegram_update)
