@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
 from src.database.db import get_db
-from src.routes import auth, users, admin, plates
+from src.routes import auth, users, admin, reports, plates
 from src.conf.config import settings
 from src.pages.router import router as router_pages
 
@@ -40,6 +40,7 @@ app.include_router(auth.router, prefix='/api')
 app.include_router(users.router, prefix='/api')
 app.include_router(admin.router, prefix='/api')
 app.include_router(plates.router, prefix='/api')
+app.include_router(reports.router, prefix='/api')
 app.include_router(router_pages)
 
 templates = Jinja2Templates(directory=BASE_DIR / "src" / "templates")
@@ -125,3 +126,24 @@ async def healthchecker(db: AsyncSession = Depends(get_db)):
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=messages.MAIN_DB_ERROR_CONNECTION)
+
+@app.get("/")
+def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.get("/signup")
+def about(request: Request):
+    return templates.TemplateResponse("signup.html", {"request": request})
+
+@app.get("/login")
+def login(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+@app.get("/about")
+def about(request: Request):
+    return templates.TemplateResponse("about.html", {"request": request})
+
+@app.get("/pricing")
+def pricing(request: Request):
+    return templates.TemplateResponse("pricing.html", {"request": request})

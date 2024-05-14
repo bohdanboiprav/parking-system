@@ -1,32 +1,57 @@
-<!doctype html>
-<html lang="en" class="h-100" data-bs-theme="auto">
-  <head>
-  
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
-    <meta name="generator" content="Hugo 0.118.2">
-    {% block head %}{% endblock %}
-    <title>PhotoShareApp</title>
-  </head>
-  <body >
-    <nav>
-      <ul>
-        <li>logout</li>
-      </ul>
-      <ul>
-        <li>login</li>
-        <li>singup</li>
-      </ul>
-    </nav>
-    <hr>
-    <div>
-      {% block content %}
-      gggg
-      
-      {% endblock %}
-    </div>
+{% extends "base.html" %}
 
-  </body>
-</html>
+{% block title %}Home Page{% endblock %}
+
+{% block content %}
+<!-- Header-->
+            <header class="bg-dark py-5">
+                <div class="container px-5">
+                    <div class="row gx-5 align-items-center justify-content-center">
+                        <div class="col-lg-8 col-xl-7 col-xxl-6">
+                            <div class="my-5 text-center text-xl-start">
+                                <h1 class="display-5 fw-bolder text-white mb-2">Parking System</h1>
+                                <p class="lead fw-normal text-white-50 mb-4">Це інноваційний додаток, призначений для оптимізації процесу паркування автомобілів. Застосунок спрощує життя водіям забезпечуючи зручність та ефективність у паркуванні!</p>
+                                <div class="d-grid gap-3 d-sm-flex justify-content-sm-center justify-content-xl-start">
+                                    <a class="btn btn-primary btn-lg px-4 me-sm-3" href="/docs">Get Started</a>
+                                    <a class="btn btn-outline-light btn-lg px-4" href="/about">Learn More</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-5 col-xxl-6 d-none d-xl-block text-center"><img class="img-fluid rounded-3 my-5" src="src/static/assets/render1.jpg" width="100%" alt=""/></div>
+                    </div>
+                </div>
+            </header>
+<!-- Features section-->
+<section class="py-5" id="features">
+    <div class="container px-5 my-5">
+        <div class="row gx-5">
+            <div class="col-lg-4 mb-5 mb-lg-0"><h2 class="fw-bolder mb-0">Настав час почати використання.</h2></div>
+            <div class="col-lg-8">
+                <div class="row gx-5 row-cols-1 row-cols-md-2">
+                    <div class="col mb-5 h-100">
+                        <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-smartwatch"></i></div>
+                        <h2 class="h5">Реєстрація часу в’їзду і виїзду:</h2>
+                        <p class="mb-0">Система автоматично фіксує час в’їзду автомобіля на парковку і час його виїзду.</p>
+                    </div>
+                    <div class="col mb-5 h-100">
+                        <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-mailbox"></i></div>
+                        <h2 class="h5">Повідомлення про подіії</h2>
+                        <p class="mb-0">Користувач отримує сповіщення або повідомлення про завершення паркування та суму, що потрібно оплатити.</p>
+                    </div>
+                    <div class="col mb-5 mb-md-0 h-100">
+                        <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-clock-history"></i></div>
+                        <h2 class="h5">Історія паркування</h2>
+                        <p class="mb-0">Можливість перегляду історії паркування для кожного автомобіля, включаючи час в’їзду, виїзду та загальну тривалість паркування.</p>
+                    </div>
+                    <div class="col h-100">
+                        <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-view-list"></i></div>
+                        <h2 class="h5">Генерація звітів і аналітика</h2>
+                        <p class="mb-0">Функція надає звіти та аналітичні дані про використання парковки, які можна використовувати для оптимізації процесів або для статистичного аналізу.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

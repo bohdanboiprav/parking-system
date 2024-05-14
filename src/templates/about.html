@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}About{% endblock %}
+
+
+{% block content %}
+
+<div class="container px-5">
+    <div class="row gx-5 align-items-center justify-content-center">
+        <div class="col-lg-8 col-xl-7 col-xxl-6">
+            <div class="my-5 text-center text-xl-start">
+                <h1 class="display-5 fw-bolder text-black mb-2">ANPR: Automatic Number Plate (Licence plate)Recognition</h1>
+                <p class="lead fw-normal text-black-50 mb-4">We required solutions that deduct human interaction, and here I am solving one of them.</p>
+                <img src="src\static\assets\barrier.gif" class="rounded mx-auto d-block" alt="">
+                <p class="lead fw-normal text-black-50 mb-4">Authentication of vehicles in a housing society, parking, the commercial building has been a problem since we are in a country where the amount of purchase of vehicles is higher than parking facilities. Hence we struggle a lot with these problems. We might need a few or many solutions that can solve problems with entities rather than developing resources. Automatic Number Plate (Licence Plate) Recognition (ANPR) is one of them, that too with entities like vehicles. I do not need to mention that it does solve problems related to Monitoring vehicle movements, Controlling entry and exit within: parking, educational establishments, police, hospitals, and garages, logging staff arrival/exit at commercial premises, speed detection and enforcement, parking management, validating vehicle types and payments at toll stations and law enforcement.</p>
+                <img src="src\static\assets\letsgo.gif" class="rounded mx-auto d-block" alt="">
+                <p class="lead fw-normal text-black-50 mb-4">If you’re familiar with OpenCV and python you will enjoy the process more, otherwise, you will learn.                  
+                    so, the first and foremost step is to take image input(RGB) and resize it to some pixel. below is the code with comments to do it.</p>
+                <img src="src\static\assets\car.webp" class="rounded mx-auto d-block" alt="">
+                <p class="lead fw-normal text-black-50 mb-4">Now, we need to convert this RGB image to Grayscale. Because in many applications of image processing, color information doesn’t help to identify important edges or any features. Here we highly need of edge of an object out of the image we feed to it.</p>
+                <img src="src\static\assets\gray_img.webp" class="rounded mx-auto d-block" alt="">
+                <p class="lead fw-normal text-black-50 mb-4">After all of this pre-processing, we can move on to the detection part. Fundamentally we need the edges of the license plate, which can be inputted to the tesseract function. To be able to detect edges, we’ll be using the Canny edge detection algorithm (there are others too), which gives a very accurate output.</p>
+                <img src="src\static\assets\edges.webp" class="rounded mx-auto d-block" alt="">
+                <p class="lead fw-normal text-black-50 mb-4">Now, the final step is to read the license plate. We were performing all of the above steps just to get the most processed input which can undergo an image to a string. Python-tesseract is an optical character recognition (OCR) tool for python. That is, it will recognize and “read” the text embedded in images.</p>
+                <img src="src\static\assets\final.webp" class="rounded mx-auto d-block" alt="">
+                <p class="lead fw-normal text-black-50 mb-4">This was just to understand the entire working of the Automatic Number Plate Recognition system. If you’re planning to extend it to production-ready and robust you would need to write scalable code. Also In order to make the entire working system, you will require to connect to one of the databases which can store the license plate data. Making a flask based web application of this would be a really good idea.</p>
+                <img src="src\static\assets\thank.gif" class="rounded mx-auto d-block" alt="">
+
+            </div>
+        </div>
+
+{% endblock %}
