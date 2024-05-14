@@ -26,6 +26,8 @@ pandas = "^2.2.2"
 pytesseract = "^0.3.10"
 matplotlib = "^3.8.4"
 requests = "^2.31.0"
+greenlet = "^3.0.3"
+opencv-python = "^4.9.0.80"
 
 
 [build-system]

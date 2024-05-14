@@ -4,8 +4,8 @@ import cv2
 import datetime
 
 
-async def capture_and_save_image(filename):
-
+async def capture_and_save_image():
+    filename = f'first_cam_{datetime.datetime.now()}.png'
     BASE_DIR = Path(__file__).parent.parent / "static" / "dir_cam_photo"
 
     # Полный путь к файлу
@@ -30,10 +30,11 @@ async def capture_and_save_image(filename):
 
     # ВЫКЛ камеру
     cap.release()
+    return filepath_str
 
 
-async def main():
-    await capture_and_save_image(f'first_cam_{datetime.datetime.now()}.png')
-
-# Запуск асинхронной функции
-asyncio.run(main())
+# async def main():
+#     await capture_and_save_image(f'first_cam_{datetime.datetime.now()}.png')
+#
+# # Запуск асинхронной функции
+# asyncio.run(main())

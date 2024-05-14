@@ -3,11 +3,14 @@ import matplotlib.pyplot as plt
 import pytesseract
 import tensorflow as tf
 from keras.src.utils import load_img, img_to_array
+import keras
+from tensorflow.keras.losses import MSE
 
-model = tf.keras.models.load_model('model.h5')
+model = keras.models.load_model('src/services/anpr_model.h5')
 
 
 async def plates_recognition(image_path, model):
+    print(image_path)
     image = load_img(image_path)
     image_resized = load_img(image_path, target_size=(224, 224))
     image_arr_224 = img_to_array(image_resized) / 255.0
