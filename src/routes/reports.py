@@ -65,7 +65,7 @@ async def download_reports_scv(
     number: str | None = None,
     start_date: date | None = None,
     end_date: date | None = None,
-    db: AsyncSession = Depends(get_db), user: User = Depends(auth_service.get_current_user)):
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(auth_service.get_current_user)):
     """
     Search function in the database of vehicle entry and exit logs with the ability to download a file scv/
 

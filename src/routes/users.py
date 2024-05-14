@@ -159,9 +159,9 @@ async def update_avto(
     The update_avto function updates a Avto's data.
         Args:
 
-    :param number: str or None: Car`s number
-    :param colour: str or None: Car`s colour
-    :param model: str or None: Car`s model
+    :param number: str or None: Cars number
+    :param colour: str or None: Cars colour
+    :param model: str or None: Cars model
     :param db: AsyncSession: Get the connection to the database
     :param current_user: User: Get the current user
     :return: A avto object
@@ -193,7 +193,7 @@ async def remove_avto(number: str,
     avto = await repository_users.remove_avto(number, db, user)
     if avto is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.AVTO_NOT_FOUND)
-    return avto
+    return { "detail": "Avto deleted successfully"}
 
 @router.get(
     "/rates_info",
@@ -204,9 +204,6 @@ async def rates_info(
     all_rates : bool,
     rate_name : str | None = None,
     db: AsyncSession = Depends(get_db)):
-    rates_info = await get_rates_info(all_rates,rate_name, db)
-    if rates_info is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.RATE_NOT_FOUND)
     """
     Function for displaying information about tariffs in the park.
 
@@ -214,6 +211,9 @@ async def rates_info(
     :param rate_name: str | None = None: Rate name info
     :return: A rates object
     """
+    rates_info = await get_rates_info(all_rates,rate_name, db)
+    if rates_info is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.RATE_NOT_FOUND)
     return rates_info
 
 @router.get(
@@ -227,9 +227,6 @@ async def get_statistics(
         limit: int = Query(10, ge=10, le=500), offset: int = Query(0, ge=0),
         db: AsyncSession = Depends(get_db), user: User = Depends(auth_service.get_current_user),       
         ):
-    log = await get_log_info(all_info, number, limit, offset,user, db)
-    if log is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.LOG_NOT_FOUND)
     """
     Function for searching user parking visit data in the database.
 
@@ -240,5 +237,8 @@ async def get_statistics(
     :param user: User: Specify the type of object that is returned by the auth_service
     :return: Log list
     """
+    log = await get_log_info(all_info, number, limit, offset,user, db)
+    if log is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.LOG_NOT_FOUND)
     return log
 
