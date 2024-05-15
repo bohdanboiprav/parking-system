@@ -7,40 +7,6 @@ from src.schemas.user import UserSchema,UserUpdateSchema
 from fastapi import Depends, HTTPException, UploadFile, File
 from src.conf import messages
 
-
-# async def get_profile(user: User, db: AsyncSession) -> dict:
-#     """
-#     The get_profile function returns a dictionary containing the following information:
-#         - username
-#         - email
-#         - avatar (url)
-#         - comments_count (number of comments made by user)
-#         - posts_count (number of posts made by user)
-
-#     :param user: User: Pass the user object to the function
-#     :param db: AsyncSession: Pass the database session to the function
-#     :return: A dictionary of user information
-#     """
-#     result = {}
-#     if user:
-#         stmt = select(func.count()).where(Comment.user_id == user.id)
-#         count = await db.execute(stmt)
-#         comments_count = count.scalar()
-
-#         stmt = select(func.count()).where(Post.user_id == user.id)
-#         count = await db.execute(stmt)
-#         posts_count = count.scalar()
-
-#         result = {
-#             "username": user.username,
-#             "email": user.email,
-#             "avatar": user.avatar,
-#             "comments_count": comments_count,
-#             "posts_count": posts_count,
-#             "created_at": user.created_at,
-#         }
-#     return result
-
 async def update_user_profile(
     notification: bool ,
     db: AsyncSession,
