@@ -27,6 +27,7 @@ from src.schemas.admin import  IsParkingLog
 from src.services.auth import auth_service
 from decimal import Decimal
 from datetime import time
+from fastapi.responses import FileResponse
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 configure_cloudinary()
@@ -57,11 +58,10 @@ async def avto_in_parking(
     return avto_in_parking
 
 @router.get(
-    "/logs",
+    "/download_log",
     dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
 async def download_reports_scv(
-    import_csv: bool,
     number: str | None = None,
     start_date: date | None = None,
     end_date: date | None = None,
@@ -79,24 +79,20 @@ async def download_reports_scv(
     """
     if current_user.user_type_id not in (2, 3):
         raise HTTPException(status_code=403, detail=messages.USER_NOT_PERMISSION)
-    reports_scv = await get_reports_scv(import_csv, number, start_date, end_date, user, db)
+    reports_scv = await get_reports_scv(number, start_date, end_date, db)
     if reports_scv is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.USER_NOT_FOUND)
-    return reports_scv
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.REPORT_NOT_FOUND)
+    return FileResponse(path="src/reports/Report.csv", filename='Report.csv',  media_type='multipart/form-data')
 
 @router.get(
     "/statistics",
     dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
-async def download_reports_scv(
-    import_csv: bool,
+async def download_statistics_scv(
     number: str | None = None,
     start_date: date | None = None,
     end_date: date | None = None,
-    db: AsyncSession = Depends(get_db), user: User = Depends(auth_service.get_current_user)):
-    reports_scv = await get_statistics(import_csv, number, start_date, end_date, user, db)
-    if reports_scv is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.USER_NOT_FOUND)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(auth_service.get_current_user)):
     """
     Search function in the database of vehicle entry and exit logs with the ability to download a file scv/
 
@@ -108,5 +104,12 @@ async def download_reports_scv(
     :param current_user: User: Get the current user
     :return: A users object
     """
-    return reports_scv
+    if current_user.user_type_id not in (2, 3):
+        raise HTTPException(status_code=403, detail=messages.USER_NOT_PERMISSION)
+    statistics_scv = await get_statistics(number, start_date, end_date, current_user, db)
+    if statistics_scv is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.STATISTICS_NOT_FOUND_NOT_FOUND)
+    return FileResponse(path="src/reports/Statistics.csv", filename='Statistics.csv',  media_type='multipart/form-data')
+
+
 

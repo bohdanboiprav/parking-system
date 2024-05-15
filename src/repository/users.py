@@ -11,22 +11,6 @@ from src.schemas.user import UserSchema, AvtoResponse, RateResponse, RateTimeRes
 from typing import List
 from src.conf import messages
 
-
-
-# async def get_user_by_email(email, user: str, db: AsyncSession = Depends(get_db)):  
-#     """
-#     The get_user_by_email function takes an email address and returns the user associated with that email.
-#     If no such user exists, it returns None.
-
-#     :param email: str: Pass the email of the user to be retrieved
-#     :param db: AsyncSession: Pass in the database session
-#     :return: A user object or none
-#     """
-#     user = select(User).filter_by(email=email)
-#     user = await db.execute(user)
-#     user = user.scalars().first()
-#     return user
-
 async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
     
     """
@@ -43,7 +27,6 @@ async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
     user = user.scalars().first()
     return user
 
-
 async def get_user_info(user: User, db: AsyncSession = Depends(get_db)):
     
     """
@@ -59,23 +42,6 @@ async def get_user_info(user: User, db: AsyncSession = Depends(get_db)):
     stmp = await db.execute(stmt)
     info = stmp.scalars().unique().all()
     return info
-
-# async def get_user_by_username(username: str, db: AsyncSession = Depends(get_db)):
-
-#     """
-#     The get_user_by_username function takes a username and returns the user object associated with that username.
-#     If no such user exists, it returns None.
-
-#     :param username: str: Specify the username of the user we want to retrieve
-#     :param db: AsyncSession: Pass the database session into the function
-#     :return: A user object or none
-#     """
-
-#     stmt = select(User).filter_by(username=username)
-#     user = await db.execute(stmt)
-#     user = user.scalar_one_or_none()
-#     return user
-
 
 async def create_user(body: UserSchema, db: AsyncSession = Depends(get_db)):
 
@@ -250,25 +216,8 @@ async def get_rates_info(all_rates, rate_name, db: AsyncSession = Depends(get_db
         if not rate:
             raise HTTPException(status_code=404, detail=messages.RATE_NOT_FOUND)
         return rate
-    
-# async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
-    
-#     """
-#     The get_user_by_email function takes an email address and returns the user associated with that email.
-#     If no such user exists, it returns None.
-
-#     :param email: str: Pass the email of the user to be retrieved
-#     :param db: AsyncSession: Pass in the database session
-#     :return: A user object or none
-#     """
- 
-#     stmt = select(User).filter_by(email=email)
-#     user = await db.execute(stmt)
-#     user = user.scalars().first()
-#     return user
-
-
-async def get_log_info(all_info ,number_avto, limit: int, offset: int, user: User, db: AsyncSession ):
+  
+async def get_log_info(number_avto, limit: int, offset: int, user: User, db: AsyncSession ):
     """
     Function for searching user parking visit data in the database.
 
@@ -283,17 +232,14 @@ async def get_log_info(all_info ,number_avto, limit: int, offset: int, user: Use
     user = await db.execute(stmt)
     user = user.scalars().first()
     if not user:
-            raise HTTPException(status_code=404, detail=messages.AVTO_NOT_FOUND) 
-    else:
-        if all_info == True:
-            c = len(user.all_avto) - 1
-            for number in range(c) :
-                user.all_avto[number].number
-        else:
-            for num in range(len(user.all_avto)) :
-                if user.all_avto[num].number == number_avto :
-                    stmt = select(Log).filter(Log.number == number_avto).offset(offset).limit(limit)
-                    info = await db.execute(stmt)
-                    info = info.scalars().unique().all()
-                    return info 
+            raise HTTPException(status_code=404, detail=messages.AVTO_NOT_FOUND)
+    res = [num.number for num in user.all_avto]
+
+    print(res)
+    if number_avto not in [num.number for num in user.all_avto]:
+        raise HTTPException(status_code=404, detail=messages.AVTO_NOT_FOUND)
+    stmt = select(Log).filter(Log.number == number_avto).offset(offset).limit(limit)
+    info = await db.execute(stmt)
+    info = info.scalars().unique().all()
+    return info 
 

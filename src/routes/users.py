@@ -218,11 +218,10 @@ async def rates_info(
 
 @router.get(
     "/statistics",
-    response_model=list[LogResponse],
+    #response_model=list[LogResponse],
     dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
 async def get_statistics(
-        all_info: bool,
         number: str | None = None,
         limit: int = Query(10, ge=10, le=500), offset: int = Query(0, ge=0),
         db: AsyncSession = Depends(get_db), user: User = Depends(auth_service.get_current_user),       
@@ -237,7 +236,7 @@ async def get_statistics(
     :param user: User: Specify the type of object that is returned by the auth_service
     :return: Log list
     """
-    log = await get_log_info(all_info, number, limit, offset,user, db)
+    log = await get_log_info(number, limit, offset,user, db)
     if log is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.LOG_NOT_FOUND)
     return log

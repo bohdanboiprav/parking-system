@@ -13,22 +13,27 @@ from datetime  import date, datetime ,timezone
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from fastapi.responses import FileResponse
 
 async def create_file_csv(filename, df):
     if filename == "report":
-        filename = "src/import_csv/Report" + datetime.now().strftime("%Y_%m_%d_%H%M%S") + ".csv"
-    elif filename == "statistic":
-        filename = "src/import_csv/Statistic" + datetime.now().strftime("%Y_%m_%d_%H%M%S") + ".csv"
+        filename = "src/reports/Report.csv" #+ datetime.now().strftime("%Y_%m_%d_%H%M%S") + ".csv"
+        f = 'Report.csv'
+    elif filename == "statistics":
+        filename = "src/reports/Statistics.csv" #+ datetime.now().strftime("%Y_%m_%d_%H%M%S") + ".csv"
+        f = 'Statistic.csv'
     '''
     Function of recording data in file *.csv
 
     :param filename (str): Filename.
     :return: A file
     '''
-    df.to_csv (filename, index= False )
+    df.to_csv (filename, index= True )
+    return FileResponse(path=filename, filename=f,  media_type='multipart/form-data')
+
 
 async def parsing_data(data):
-    result = [[log.number, log.start, log.stop, log.billcash, log.billbalance, log.discount, log.in_parking ] for log in data]
+    result = [[log.number, log.start, log.stop, log.discount, log.total, log.in_parking] for log in data]
     '''  
     Function of data parsing and writing to a list.
 
@@ -39,22 +44,23 @@ async def parsing_data(data):
     return result
 
 async def statistics(data):
-    data[['billcash', 'billbalance']] = data[['billcash', 'billbalance']].fillna(0)
+    data[['total']] = data[['total']].fillna(0)
+    data[['stop']] = data[['stop']].fillna(datetime.now(timezone.utc))
     data['time_in_parkink'] = data.stop - data.start
-    data['payment_amount'] = data.billcash + data.billbalance
+    data['number_avto'] = data['number']
     count = data['number'].value_counts()
     count = count.to_frame()
     time_in_parkink = data.groupby('number').agg('time_in_parkink')
     time_in_parkink = time_in_parkink.sum()
     result = time_in_parkink.to_frame()
-    payment_amount = data.groupby('number').agg('payment_amount')
+    payment_amount = data.groupby('number').agg('total')
     payment_amount = payment_amount.sum()
     payment_amount = payment_amount.to_frame()
-    result["payment_amount"] = payment_amount.iloc[:,0]
+    result["total"] = payment_amount.iloc[:,0]
     result["number_of_times"] = count.iloc[:,0]
-    print(result["number"].tolist())
     return result
- 
+
+
 async def get_avto_in_parking(limit, offset, user: User, db: AsyncSession = Depends(get_db)):  
     """
     Search function on a database of cars in the parking lot.
@@ -69,6 +75,7 @@ async def get_avto_in_parking(limit, offset, user: User, db: AsyncSession = Depe
     info = select(Log).filter_by(in_parking=True).offset(offset).limit(limit)
     info = await db.execute(info)
     info = info.scalars().unique().all()
+    time_info.append({"Free parking spaces": 100 - len(info)})
     datetime_naw = datetime.now(timezone.utc)
     result = [[log.number, log.start ] for log in info]
     for i in result:
@@ -80,7 +87,7 @@ async def get_avto_in_parking(limit, offset, user: User, db: AsyncSession = Depe
         time_info.append(dict_)
     return  time_info
 
-async def get_reports_scv(import_csv, number, start_date, end_date,user: User, db: AsyncSession = Depends(get_db)):
+async def get_reports_scv(number, start_date, end_date, db: AsyncSession = Depends(get_db)):
     """
     Search function in the database of vehicle entry and exit logs with the ability to download a file scv/
 
@@ -92,17 +99,15 @@ async def get_reports_scv(import_csv, number, start_date, end_date,user: User, d
     :param current_user: User: Get the current user
     :return: A  list
     """
-    columns = ["number", "start", "stop", "billcash", "billbalance", "discount", "in_parking"]
-
+    columns = ["number", "start", "stop", "discount", "total", "in_parking"]
     if number == None:
         info = select(Log)
         info = await db.execute(info)
         info = info.scalars().unique().all()
         returned_list =  await parsing_data(info)
-        if import_csv == True:
-            data_df = pd.DataFrame(returned_list,columns = columns) 
-            await create_file_csv("report",data_df)
-        return returned_list
+        data_df = pd.DataFrame(returned_list, columns = columns) 
+        file = await create_file_csv("report",data_df)
+        return file
     elif start_date != None and end_date == None:
         info = select(Log).filter_by(number = number).\
         filter((extract('year',Log.start) >= start_date.year)).\
@@ -111,10 +116,9 @@ async def get_reports_scv(import_csv, number, start_date, end_date,user: User, d
         info = await db.execute(info)
         info = info.scalars().all()
         returned_list =  await parsing_data(info)
-        if import_csv == True:
-            data_df = pd.DataFrame(returned_list,columns = columns) 
-            await create_file_csv("report",data_df)
-        return returned_list
+        data_df = pd.DataFrame(returned_list,columns = columns) 
+        file = await create_file_csv("report",data_df)
+        return file
     elif start_date == None and end_date != None:
         info = select(Log).filter_by(number = number).\
             filter((extract('year',Log.start) <= end_date.year)).\
@@ -123,10 +127,9 @@ async def get_reports_scv(import_csv, number, start_date, end_date,user: User, d
         info = await db.execute(info)
         info = info.scalars().all()
         returned_list =  await parsing_data(info)
-        if import_csv == True:
-            data_df = pd.DataFrame(returned_list,columns = columns) 
-            await create_file_csv("report",data_df)
-        return returned_list
+        data_df = pd.DataFrame(returned_list,columns = columns) 
+        file = await create_file_csv("report",data_df)
+        return file
     elif start_date != None and end_date != None:
         info = select(Log).filter_by(number = number).\
             filter((extract('year',Log.start) >= start_date.year)).\
@@ -138,21 +141,19 @@ async def get_reports_scv(import_csv, number, start_date, end_date,user: User, d
         info = await db.execute(info)
         info = info.scalars().unique().all()
         returned_list =  await parsing_data(info)
-        if import_csv == True:
-            data_df = pd.DataFrame(returned_list,columns = columns) 
-            await create_file_csv("report",data_df)
-        return returned_list
+        data_df = pd.DataFrame(returned_list,columns = columns) 
+        file = await create_file_csv("report",data_df)
+        return file
     else :
-        stmt = select(Log).filter_by(number = number)
+        stmt = select(Log).filter_by(number=number)
         stmt = await db.execute(stmt)
         info = stmt.scalars().unique().all()
         returned_list =  await parsing_data(info)
-        if import_csv == True:
-            data_df = pd.DataFrame(returned_list,columns = columns) 
-            await create_file_csv("report",data_df)
-        return returned_list
+        data_df = pd.DataFrame(returned_list,columns = columns) 
+        file = await create_file_csv("report",data_df)
+        return file
 
-async def get_statistics(import_csv, number, start_date, end_date,user: User, db: AsyncSession = Depends(get_db)): 
+async def get_statistics( number, start_date, end_date,user: User, db: AsyncSession = Depends(get_db)): 
     """
     Search function in the database of vehicle entry and exit logs with the ability to download a file scv/
 
@@ -164,18 +165,17 @@ async def get_statistics(import_csv, number, start_date, end_date,user: User, db
     :param current_user: User: Get the current user
     :return: A users object
     """
-    columns = ["number", "start", "stop", "billcash", "billbalance", "discount", "in_parking"]
+    columns = ["number", "start", "stop", "discount", "total", "in_parking"]
 
     if number == None:
         info = select(Log)
         info = await db.execute(info)
         info = info.scalars().unique().all()
         returned_list =  await parsing_data(info)
-        if import_csv == True:
-            data_df = pd.DataFrame(returned_list,columns = columns) 
-            res = await  statistics(data_df)
-            await create_file_csv('statistics',res)
-        return returned_list
+        data_df = pd.DataFrame(returned_list,columns = columns) 
+        res = await statistics(data_df)
+        file = await create_file_csv('statistics',res)
+        return file
     elif start_date != None and end_date == None:
         info = select(Log).filter_by(number = number).\
         filter((extract('year',Log.start) >= start_date.year)).\
@@ -184,10 +184,9 @@ async def get_statistics(import_csv, number, start_date, end_date,user: User, db
         info = await db.execute(info)
         info = info.scalars().all()
         returned_list =  await parsing_data(info)
-        if import_csv == True:
-            data_df = pd.DataFrame(returned_list,columns = columns)
-            res = await  statistics(data_df)
-            await create_file_csv('statistics',res)
+        data_df = pd.DataFrame(returned_list,columns = columns)
+        res = await  statistics(data_df)
+        await create_file_csv('statistics',res)
         return returned_list
     elif start_date == None and end_date != None:
         info = select(Log).filter_by(number = number).\
@@ -197,10 +196,9 @@ async def get_statistics(import_csv, number, start_date, end_date,user: User, db
         info = await db.execute(info)
         info = info.scalars().all()
         returned_list =  await parsing_data(info)
-        if import_csv == True:
-            data_df = pd.DataFrame(returned_list,columns = columns)
-            res = await  statistics(data_df) 
-            await create_file_csv('statistics',res)
+        data_df = pd.DataFrame(returned_list,columns = columns)
+        res = await  statistics(data_df) 
+        await create_file_csv('statistics',res)
         return returned_list
     elif start_date != None and end_date != None:
         info = select(Log).filter_by(number = number).\
@@ -213,20 +211,18 @@ async def get_statistics(import_csv, number, start_date, end_date,user: User, db
         info = await db.execute(info)
         info = info.scalars().unique().all()
         returned_list =  await parsing_data(info)
-        if import_csv == True:
-            data_df = pd.DataFrame(returned_list,columns = columns)
-            res = await  statistics(data_df) 
-            await create_file_csv('statistics',res)
+        data_df = pd.DataFrame(returned_list,columns = columns)
+        res = await  statistics(data_df) 
+        await create_file_csv('statistics',res)
         return returned_list
     else :
         stmt = select(Log).filter_by(number = number)
         stmt = await db.execute(stmt)
         info = stmt.scalars().unique().all()
         returned_list =  await parsing_data(info)
-        if import_csv == True:
-            data_df = pd.DataFrame(returned_list,columns = columns)
-            res = await  statistics(data_df) 
-            await create_file_csv('statistics',res)
+        data_df = pd.DataFrame(returned_list,columns = columns)
+        res = await  statistics(data_df) 
+        await create_file_csv('statistics',res)
         return returned_list
 
 

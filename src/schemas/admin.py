@@ -33,7 +33,7 @@ class IsParkingLog(BaseModel):
     Cars_in_the_parking: datetime | None
 
 class LogResponse(BaseModel):
-    id: int | None 
+   # id: int | None 
     number: str | None
     model_config = ConfigDict(from_attributes=True)
 

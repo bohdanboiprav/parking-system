@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import pytesseract
 import tensorflow as tf
 from keras.src.utils import load_img, img_to_array
@@ -23,6 +22,5 @@ async def plates_recognition(image_path, model):
     xmin, xmax, ymin, ymax = int(coordinates[0, 0]), int(coordinates[0, 1]), int(coordinates[0, 2]), int(
         coordinates[0, 3])
     roi = img[ymin:ymax, xmin:xmax]
-    plt.imshow(roi)
     text = pytesseract.image_to_string(roi, lang='eng')
     return text

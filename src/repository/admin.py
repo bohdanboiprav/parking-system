@@ -39,11 +39,14 @@ async def update_balans(
         raise HTTPException(status_code=404, detail=messages.USER_NOT_FOUND)
     if replenishment == None:
         raise HTTPException(status_code=400, detail=messages.NO_DATA)
+    if carent_user.balance == None:
+        carent_user.balance = 0 
+    print(replenishment)
     carent_user.balance = replenishment + carent_user.balance
     db.add(carent_user)
     await db.commit()
     await db.refresh(carent_user)
-    return carent_user
+    return {"balance replenished by sum": replenishment,"total balance": carent_user.balance}
 
 async def get_admin_users_info(email, limit, offset, user: User, db: AsyncSession = Depends(get_db)): 
     """
@@ -74,25 +77,7 @@ async def get_admin_users_info(email, limit, offset, user: User, db: AsyncSessio
         stmp = await db.execute(stmt)
         info = stmp.scalars().unique().all()
         return info        
-
-# async def get_user_info(user: User, db: AsyncSession = Depends(get_db)):
-    
-#     """
-#     The get_user_by_email function takes an email address and returns the user associated with that email.
-#     If no such user exists, it returns None.
-
-#     :param email: str: Pass the email of the user to be retrieved
-#     :param db: AsyncSession: Pass in the database session
-#     :return: A user object or none
-#     """
-#     if user.user_type_id not in (2, 3):
-#         raise HTTPException(status_code=403, detail=messages.USER_NOT_PERMISSION)
-
-#     stmt = select(User).filter_by(email=user.email)
-#     stmp = await db.execute(stmt)
-#     info = stmp.scalars().unique().all()
-#     return info
-    
+   
 async def get_number_avto(number, db: AsyncSession = Depends(get_db)):
     """
     The get_number_avto function for searching information about 
@@ -123,35 +108,6 @@ async def get_number_avto(number, db: AsyncSession = Depends(get_db)):
 
         }
     return result
-
-# async def get_log_info(all_info ,number_avto, limit: int, offset: int, user: User, db: AsyncSession ):
-#     """
-#     The get_user_by_email function takes an email address and returns the user associated with that email.
-#     If no such user exists, it returns None.
-
-#     :param email: str: Pass the email of the user to be retrieved
-#     :param db: AsyncSession: Pass in the database session
-#     :return: A user object or none
-#     """
-#     if user.user_type_id not in (2, 3):
-#         raise HTTPException(status_code=403, detail=messages.USER_NOT_PERMISSION)
-#     stmt = select(User).filter_by(email=user.email)
-#     user = await db.execute(stmt)
-#     user = user.scalars().first()
-#     if not user:
-#             raise HTTPException(status_code=404, detail=messages.AVTO_NOT_FOUND) 
-#     else:
-#         if all_info == True:
-#             c = len(user.all_avto) - 1
-#             for number in c :
-#                 user.all_avto[number].number
-#         else:
-#             for num in range(len(user.all_avto)) :
-#                 if user.all_avto[num].number == number_avto :
-#                     stmt = select(Log).filter(Log.number == number_avto).offset(offset).limit(limit)
-#                     info = await db.execute(stmt)
-#                     info = info.scalars().unique().all()
-#                     return info 
 
 async def ban_avto(
     is_ban: bool,    
