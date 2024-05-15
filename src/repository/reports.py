@@ -28,7 +28,7 @@ async def create_file_csv(filename, df):
     :param filename (str): Filename.
     :return: A file
     '''
-    df.to_csv (filename, index= False )
+    df.to_csv (filename, index= True )
     return FileResponse(path=filename, filename=f,  media_type='multipart/form-data')
 
 
@@ -56,10 +56,8 @@ async def statistics(data):
     payment_amount = data.groupby('number').agg('total')
     payment_amount = payment_amount.sum()
     payment_amount = payment_amount.to_frame()
-    num_avto = data.groupby('number').agg('number_avto')
     result["total"] = payment_amount.iloc[:,0]
     result["number_of_times"] = count.iloc[:,0]
-    result.index  = range(len(result))
     return result
 
 

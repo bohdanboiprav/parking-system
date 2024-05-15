@@ -218,7 +218,7 @@ async def rates_info(
 
 @router.get(
     "/statistics",
-   # response_model=list[LogResponse],
+    #response_model=list[LogResponse],
     dependencies=[Depends(RateLimiter(times=2, seconds=5))],
 )
 async def get_statistics(

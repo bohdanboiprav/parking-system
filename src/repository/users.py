@@ -27,7 +27,6 @@ async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
     user = user.scalars().first()
     return user
 
-
 async def get_user_info(user: User, db: AsyncSession = Depends(get_db)):
     
     """
@@ -233,7 +232,12 @@ async def get_log_info(number_avto, limit: int, offset: int, user: User, db: Asy
     user = await db.execute(stmt)
     user = user.scalars().first()
     if not user:
-            raise HTTPException(status_code=404, detail=messages.AVTO_NOT_FOUND) 
+            raise HTTPException(status_code=404, detail=messages.AVTO_NOT_FOUND)
+    res = [num.number for num in user.all_avto]
+
+    print(res)
+    if number_avto not in [num.number for num in user.all_avto]:
+        raise HTTPException(status_code=404, detail=messages.AVTO_NOT_FOUND)
     stmt = select(Log).filter(Log.number == number_avto).offset(offset).limit(limit)
     info = await db.execute(stmt)
     info = info.scalars().unique().all()
