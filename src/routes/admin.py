@@ -412,27 +412,4 @@ async def rates_info(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.RATE_NOT_FOUND)
     return rates_info
 
-# @router.get(
-#     "/statistics",
-#     response_model=list[LogResponse],
-#     dependencies=[Depends(RateLimiter(times=2, seconds=5))],
-# )
-# async def get_current_user(
-#         all_info: bool,
-#         number: str | None = None,
-#         limit: int = Query(10, ge=10, le=500), offset: int = Query(0, ge=0),
-#         db: AsyncSession = Depends(get_db), user: User = Depends(auth_service.get_current_user),       
-#         ):
-#     log = await get_log_info(all_info, number, limit, offset,user, db)
-#     if log is None:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.LOG_NOT_FOUND)
-#     """
-#     The get_current_user function is a dependency that will be injected into the
-#         get_current_user endpoint. It uses the auth_service to retrieve the current user,
-#         and returns it if found.
-
-#     :param user: User: Specify the type of object that is returned by the auth_service
-#     :return: The current user, which is stored in the database
-#     """
-#     return log
 

@@ -30,7 +30,7 @@ class UserResponse(BaseModel):
     mobilenamber: str | None
     databirthday: date | None
     balance: Decimal | None
-    notification: bool 
+    notification: bool | None
     avatar: str
     all_avto: List[AvtoResponse] | None
     model_config = ConfigDict(from_attributes=True)
@@ -59,10 +59,9 @@ class LogResponse(BaseModel):
     number: str | None
     start: datetime | None
     stop: datetime | None
-    billcash: Decimal | None
-    billbalance: Decimal  | None  
-    discount: Decimal  | None
-    in_parking : bool 
+    total: Decimal | None
+    discount: Decimal | None  
+    in_parking : bool | None 
    
 
 
