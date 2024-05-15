@@ -47,7 +47,7 @@ async def exit_log(number, current_user: User, db: AsyncSession, discount=0):
     total_value = rate.price * Decimal(time_difference_minutes) / rate.pricetime
     log.in_parking = False
     log.stop = func.now()
-    log.total = float(total_value)
+    log.total = Decimal(total_value)
     log.discount = discount
     user = await db.execute(select(User).join(Avto).where(Avto.user_id == User.id).where(Avto.number == number))
     user = user.scalars().first()

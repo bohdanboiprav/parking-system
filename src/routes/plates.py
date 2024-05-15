@@ -40,7 +40,7 @@ async def parking_enter(
     if user.user_type_id != 3:
         raise HTTPException(status_code=403, detail=messages.USER_NOT_PERMISSION)
     # image_path = await capture_and_save_image()
-    plates_number = await plates_recognition('1.jpeg', model)
+    plates_number = await plates_recognition('src/routes/1.jpeg', model)
     plates_number = plates_number.strip().replace('\n', "")
 
     print(plates_number)
@@ -50,19 +50,17 @@ async def parking_enter(
     return log
 
 
-
-
 @router.get("/parking_exit", dependencies=[Depends(RateLimiter(times=2, seconds=5))], )
 async def parking_exit(
-        discount: float = Query(0),
         db: AsyncSession = Depends(get_db),
         user: User = Depends(auth_service.get_current_user)):
     if user.user_type_id != 3:
         raise HTTPException(status_code=403, detail=messages.USER_NOT_PERMISSION)
     # image_path = await capture_and_save_image()
-    plates_number = await plates_recognition('1.jpeg', model)
+    plates_number = await plates_recognition('src/routes/1.jpeg', model)
+    plates_number = plates_number.strip().replace('\n', "")
     print(plates_number)
     if plates_number is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.PLATES_NOT_RECOGNIZED)
-    log = await exit_log(plates_number, user, db, discount=discount)
+    log = await exit_log(plates_number, user, db, discount=0)
     return log
